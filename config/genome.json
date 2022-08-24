@@ -1,5 +1,6 @@
 {
     "references": {
+        "ALIAS": "hg19",
         "BLACKLISTBWAINDEX": "/data/OpenOmics/references/cfChIP-seek/hg19_basic/indexes/hg19.blacklist.chrM",
         "BWA": "/data/OpenOmics/references/cfChIP-seek/hg19_basic/indexes/hg19",
         "CHROMS": [
