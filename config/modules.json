@@ -1,4 +1,8 @@
 {
+    "bin": {
+        "NGSQC": "/data/OpenOmics/references/cfChIP-seek/bin/NGSQC_linux_x86_64"
+    },
+    "conda": {},
     "tools": {
         "BEDTOOLSVER": "bedtools/2.27.1",
         "BOWTIE2VER": "bowtie/2-2.3.4",
