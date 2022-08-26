@@ -40,8 +40,8 @@ import argparse  # potential python3 3rd party package, added in python/3.5
 # Local imports
 from src import version 
 from src.run import init, setup, bind, dryrun, runner
-from src.shells import bash
 from src.files import peakcalls, contrasts
+from src.shells import bash
 from src.utils import (
     Colors,
     err,
@@ -50,7 +50,8 @@ from src.utils import (
     hashed,
     permissions,
     check_cache,
-    require)
+    require
+)
 
 
 # Pipeline Metadata
@@ -135,7 +136,21 @@ def run(sub_args):
     # their inputs AND it defines its group. 
     # The contrast.tsv file defines comparsions
     # to be made with groups of samples.
+    # Add peakcall information to config.json
+    chip2input, groups = peakcalls(sub_args.peakcall)
+    # Adding peakcall information to projects
+    chips_samples = list(chip2input.keys())
+    input_samples = list(chip2input.values())
+    config['project']['peaks'] = {}
+    config['project']['peaks']['chips'] = chips_samples
+    config['project']['peaks']['inputs'] = input_samples 
+    config['project']['groups'] = groups
 
+    # Add contrast information to config.json
+    if sub_args.contrasts:
+        user_defined_groups = list(groups.keys())
+        comparsions = contrasts(sub_args.contrasts, user_defined_groups)
+        config['project']['contrast'] = comparsions
 
     # Step 4. Save config to output directory
     with open(os.path.join(sub_args.output, 'config.json'), 'w') as fh:
@@ -470,7 +485,6 @@ def parsed_arguments(name, description):
         # Check if the file exists and if it is readable
         type = lambda file: permissions(parser, file, os.R_OK),
         required = True,
-        default = None,
         help = argparse.SUPPRESS
     )
 
