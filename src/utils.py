@@ -359,4 +359,13 @@ if __name__ == '__main__':
     # Calcualte MD5 cehcksum of 512 byte chunck of file,
     # which is similar to following unix command: 
     # dd if=utils.py bs=512 count=1 2>/dev/null | md5sum 
-    print('{}  {}'.format(md5sum(sys.argv[0], first_block_only = True, blocksize = 512), sys.argv[0]))
+    print(
+        '{}  {}'.format(
+            md5sum(
+                sys.argv[0], 
+                first_block_only = True, 
+                blocksize = 512
+            ), 
+                sys.argv[0]
+        )
+    )
