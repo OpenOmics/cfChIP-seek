@@ -140,7 +140,7 @@ def run(sub_args):
     chip2input, groups = peakcalls(sub_args.peakcall)
     # Adding peakcall information to projects
     chips_samples = list(chip2input.keys())
-    input_samples = list(chip2input.values())
+    input_samples = chip2input
     config['project']['peaks'] = {}
     config['project']['peaks']['chips'] = chips_samples
     config['project']['peaks']['inputs'] = input_samples 
