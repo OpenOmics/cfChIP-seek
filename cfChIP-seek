@@ -407,6 +407,7 @@ def parsed_arguments(name, description):
           # Step 2A.) Dry-run the pipeline
           ./{0} run --input .tests/*.R?.fastq.gz \\
                          --output /data/$USER/output \\
+                         --peakcall .tests/peakcall.tsv \\
                          --mode slurm \\
                          --dry-run
 
@@ -416,6 +417,7 @@ def parsed_arguments(name, description):
           # the pipeline in this mode.
           ./{0} run --input .tests/*.R?.fastq.gz \\
                          --output /data/$USER/output \\
+                         --peakcall .tests/peakcall.tsv \\
                          --mode slurm
 
         {2}{3}Version:{4}

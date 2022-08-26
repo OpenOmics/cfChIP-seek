@@ -30,7 +30,7 @@ jobs:
         --output /opt2/output --peakcall /opt2/.tests/peakcall.tsv \
         --contrasts /opt2/.tests/contrasts.tsv --mode local --dry-run \
         && echo 'Contents of generated config file, config.json ...' \
-        && cat /opt2/output/config.json
+        && cat $PWD/output/config.json
     - name: Lint Workflow
       continue-on-error: true
       run: |
