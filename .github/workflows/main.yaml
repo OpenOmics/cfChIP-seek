@@ -23,7 +23,14 @@ jobs:
         /opt2/.tests/WT_S2_R1.fastq.gz /opt2/.tests/WT_S2_R2.fastq.gz \
         /opt2/.tests/WT_S3_1.fastq.gz /opt2/.tests/WT_S3_2.fastq.gz \
         /opt2/.tests/WT_S4_R1.001.fastq.gz /opt2/.tests/WT_S4_R2.001.fastq.gz \
-        --output /opt2/output --mode local --dry-run
+        /opt2/.tests/Input_S1.R1.fastq.gz /opt2/.tests/Input_S1.R2.fastq.gz \
+        /opt2/.tests/Input_S2_R1.fastq.gz /opt2/.tests/Input_S2_R2.fastq.gz \
+        /opt2/.tests/Input_S3_1.fastq.gz /opt2/.tests/Input_S3_2.fastq.gz \
+        /opt2/.tests/Input_S4_R1.001.fastq.gz /opt2/.tests/Input_S4_R2.001.fastq.gz \
+        --output /opt2/output --peakcall /opt2/.tests/peakcall.tsv \
+        --contrasts /opt2/.tests/contrasts.tsv --mode local --dry-run \
+        && echo 'Contents of generated config file, config.json ...' \
+        && cat /opt2/output/config.json
     - name: Lint Workflow
       continue-on-error: true
       run: |
