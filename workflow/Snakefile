@@ -132,8 +132,9 @@ for group, chips in groupdata.items() :
 groups = list(groupdatawinput.keys())
 deepgroups, deepexts = outputfiles2(groups,inputnorm)
 deepgroups3, deepexts3 = outputfiles3(groups,inputnorm)
-H3K4me3samples = [sample for sample in samples if any (sub in sample for sub in ['K4Me3','K4me3'] )]
-
+# Setup to run with ChIP samples, 
+# which could include IgG samples
+H3K4me3samples = list(config['project']['peaks']['chips'])
 
 # Creating directories
 # TODO: Remove this step as it's not needed,
