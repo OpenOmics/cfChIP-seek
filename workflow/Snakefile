@@ -199,10 +199,10 @@ rule trim_pe:
         outfq1=temp(join(workpath,trim_dir,"{name}.R1.trim.fastq.gz")),
         outfq2=temp(join(workpath,trim_dir,"{name}.R2.trim.fastq.gz")),
     params:
-        rname="pl:trim",
+        rname="trim",
         cutadaptver=config['tools']['CUTADAPTVER'],
         workpath=config['project']['workpath'],
-        fastawithadaptersetd=config['shared_resources']['ADAPTERS_FASTA'],
+        fastawithadaptersetd=join(workpath, config['shared_resources']['ADAPTERS_FASTA']),
         blacklistbwaindex=config['references']['BLACKLISTBWAINDEX'],
         picardver=config['tools']['PICARDVER'],
         bwaver=config['tools']['BWAVER'],
@@ -243,7 +243,7 @@ rule kraken_pe:
         krakentaxa = join(workpath,kraken_dir,"{name}.trim.fastq.kraken_bacteria.taxa.txt"),
         kronahtml = join(workpath,kraken_dir,"{name}.trim.fastq.kraken_bacteria.krona.html"),
     params: 
-        rname='pl:kraken',
+        rname='kraken',
         prefix="{name}",
         outdir=join(workpath,kraken_dir),
         bacdb=config['shared_resources']['KRAKENBACDB'],
@@ -270,7 +270,7 @@ rule BWA_PE:
         infq2 = join(workpath,trim_dir,"{name}.R2.trim.fastq.gz"),
     params:
         d=join(workpath,bam_dir),
-        rname='pl:bwa',
+        rname='bwa',
         reference=config['references']['BWA'],
         bwaver=config['tools']['BWAVER'],
         samtoolsver=config['tools']['SAMTOOLSVER'],
@@ -312,7 +312,7 @@ rule picard_dedup:
         out6=join(workpath,bam_dir,"{name}.bwa.Q5.duplic"),
         out7=temp(join(workpath,bam_dir,"{name}.Q5DD.tagAlign"))
     params:
-        rname='pl:dedup',
+        rname='dedup',
         picardver=config['tools']['PICARDVER'],
         samtoolsver=config['tools']['SAMTOOLSVER'],
         rver=config['tools']['RVER'],
@@ -348,7 +348,7 @@ rule insert_size:
         txt= join(workpath,qc_dir,"{name}.{ext}.insert_size_metrics.txt"),
         pdf= temp(join(workpath,qc_dir,"{name}.{ext}.insert_size_histogram.pdf")),
     params:
-        rname="pl:insert_size",
+        rname="insert_size",
         picardver=config['tools']['PICARDVER'],
         javaram='16g',
     shell: """
@@ -365,7 +365,7 @@ rule ppqt:
         ppqt= join(workpath,bam_dir,"{name}.{ext}.ppqt"),
         pdf= join(workpath,bam_dir,"{name}.{ext}.pdf"),
     params:
-        rname="pl:ppqt",
+        rname="ppqt",
         samtoolsver=config['tools']['SAMTOOLSVER'],
         rver=config['tools']['RVER'],
     run:
@@ -388,7 +388,7 @@ rule ppqt_process:
     output:
         out=join(workpath,bam_dir,'{ext}.ppqt.txt'),
     params:
-        rname="pl:ppqt_process",
+        rname="ppqt_process",
     run:
         o=open(output.out,'w')
         for inppqt in input:
@@ -420,7 +420,7 @@ rule bam2bw:
     output:
         outbw=join(workpath,bw_dir,"{name}.{ext}.RPGC.bw"),
     params:
-        rname="pl:bam2bw",
+        rname="bam2bw",
         reflen=config['references']['REFLEN'],
         deeptoolsver=config['tools']['DEEPTOOLSVER'],
         effectivegenomesize=config['references']['EFFECTIVEGENOMESIZE'],
@@ -457,7 +457,7 @@ rule deeptools_prep:
         temp(expand(join(workpath,bam_dir,"{group}.{ext}.deeptools_prep"),group=groups,ext=extensions2)),
         temp(expand(join(workpath,bw_dir,"{group2}.{ext2}.deeptools_prep"), zip, group2=deepgroups,ext2=deepexts)),
     params:
-        rname="pl:deeptools_prep",
+        rname="deeptools_prep",
         batch="--mem=10g --time=1:00:00",
     threads: 1
     run:
@@ -508,7 +508,7 @@ rule deeptools_QC:
         pca=join(workpath,deeptools_dir,"pca.{ext}.pdf"),
 	    npz=temp(join(workpath,deeptools_dir,"{ext}.npz")),
     params:
-        rname="pl:deeptools_QC",
+        rname="deeptools_QC",
         deeptoolsver=config['tools']['DEEPTOOLSVER'],
         png=lambda w: join(workpath,deeptools_dir,"spearman_heatmap." + w.ext + "_mqc.png")
     run:
@@ -536,7 +536,7 @@ rule deeptools_fingerprint:
         image=join(workpath,deeptools_dir,"{group}.fingerprint.sorted.pdf"),
         metrics=join(workpath,extra_fingerprint_dir,"{group}.fingerprint.metrics.sorted.tsv"),
     params:
-        rname="pl:deeptools_fingerprint",
+        rname="deeptools_fingerprint",
         deeptoolsver=config['tools']['DEEPTOOLSVER'],
 	nthreads="8"
     run:
@@ -560,7 +560,7 @@ rule deeptools_fingerprint_Q5DD:
         raw=temp(join(workpath,deeptools_dir,"{group}.fingerprint.raw.Q5DD.tab")),
         metrics=join(workpath,deeptools_dir,"{group}.fingerprint.metrics.Q5DD.tsv"),
     params:
-        rname="pl:deeptools_fingerprint_Q5DD",
+        rname="deeptools_fingerprint_Q5DD",
         deeptoolsver=config['tools']['DEEPTOOLSVER'],
 	nthreads="8"
     run:
@@ -588,7 +588,7 @@ rule deeptools_genes:
         TSSmat=temp(join(workpath,deeptools_dir,"{group}.TSS.{ext}.mat.gz")),
         bed=temp(join(workpath,deeptools_dir,"{group}.geneinfo.{ext}.bed")),
     params:
-        rname="pl:deeptools_genes",
+        rname="deeptools_genes",
         deeptoolsver=config['tools']['DEEPTOOLSVER'],
         prebed=config['references']['GENEINFO'],
         nthreads="16"
@@ -625,7 +625,7 @@ rule inputnorm:
     output:
         join(workpath,bw_dir,"{name}.Q5DD.RPGC.inputnorm.bw")
     params:
-        rname="pl:inputnorm",
+        rname="inputnorm",
         deeptoolsver=config['tools']['DEEPTOOLSVER'],
     shell: """
     module load {params.deeptoolsver};
@@ -635,7 +635,7 @@ rule inputnorm:
 
 rule preseq:
     params:
-        rname = "pl:preseq",
+        rname = "preseq",
         preseqver=config['tools']['PRESEQVER'],
     input:
         bam = join(workpath,bam_dir,"{name}.sorted.bam"),
@@ -651,7 +651,7 @@ rule NRF:
     input:
         bam=join(workpath,bam_dir,"{name}.sorted.bam"),
     params:
-        rname='pl:NRF',
+        rname='NRF',
         samtoolsver=config['tools']['SAMTOOLSVER'],
         rver=config['tools']['RVER'],
         preseqver=config['tools']['PRESEQVER'],
@@ -676,7 +676,7 @@ rule rawfastqc:
     output:
         html=expand(join(workpath,'rawfastQC',"{name}.R1_fastqc.html"),name=samples)
     params:
-        rname='pl:rawfastqc',
+        rname='rawfastqc',
         folder=join(workpath,'rawfastQC'),
         batch='--cpus-per-task=32 --mem=100g --time=48:00:00',
         fastqcver=config['tools']['FASTQCVER']
@@ -692,7 +692,7 @@ rule rawfastqc:
 
 rule fastqc:
     params:
-        rname='pl:fastqc',
+        rname='fastqc',
         batch='--cpus-per-task=32 --mem=110g --time=48:00:00',
         fastqcver=config['tools']['FASTQCVER']
     input:
@@ -724,7 +724,7 @@ rule fastq_screen:
         join(workpath,"FQscreen2","{name}.R1.trim_screen.png") if se == "yes" else \
             expand(join(workpath,"FQscreen2","{name}.R{rn}.trim_screen.png"),name=samples,rn=[1,2]),
     params:
-        rname='pl:fqscreen',
+        rname='fqscreen',
         bowtie2ver=config['tools']['BOWTIE2VER'],
         perlver=config['tools']['PERLVER'],
         fastq_screen=config['bin']['FASTQ_SCREEN'],
@@ -753,7 +753,7 @@ rule ngsqc:
     output:
         file=join(workpath,qc_dir,"{name}.Q5DD.NGSQC_report.txt"),
     params:
-        rname="pl:ngsqc",
+        rname="ngsqc",
         bedtoolsver=config['tools']['BEDTOOLSVER'],
         ngsqc=config['bin']['NGSQC'],
         genomefile=config['references']['REFLEN']
@@ -779,7 +779,7 @@ rule ngsqc_plot:
     output:
         png=expand(join(workpath,"QC","{group}.NGSQC.Q5DD.png"),group=groups),
     params:
-        rname="pl:ngsqc_plot",
+        rname="ngsqc_plot",
         script=join(workpath,"Scripts","ngsqc_plot.py"),
     run:
         commoncmd1 = "if [ ! -e /lscratch/$SLURM_JOBID ]; then mkdir /lscratch/$SLURM_JOBID ;fi"
@@ -812,7 +812,7 @@ rule QCstats:
         ppqt=join(workpath,bam_dir,"{name}.Q5DD.ppqt"),
         ppqt2=join(workpath,bam_dir,"Q5DD.ppqt.txt"),
     params:
-        rname='pl:QCstats',
+        rname='QCstats',
         filterCollate=join(workpath,"Scripts","filterMetrics"),   
     output:
         sampleQCfile=temp(join(workpath,qc_dir,"{name}.qcmetrics")),
@@ -839,7 +839,7 @@ rule QCTable:
     input:
         expand(join(workpath,qc_dir,"{name}.qcmetrics"), name=samples),
     params:
-        rname='pl:QCTable',
+        rname='QCTable',
         inputstring=" ".join(expand(join(workpath,qc_dir,"{name}.qcmetrics"), name=samples)),
         filterCollate=join(workpath,"Scripts","createtable"),
     output:
@@ -866,9 +866,9 @@ rule multiqc:
     output:
         join(workpath,"Reports","multiqc_report.html")
     params:
-        rname="pl:multiqc",
+        rname="multiqc",
         multiqc=config['tools']['MULTIQCVER'],
-	qcconfig=config['shared_resources']['MULTIQC_CONFIG'],
+	qcconfig=join(workpath, config['shared_resources']['MULTIQC_CONFIG']),
 	dir=join("..",extra_fingerprint_dir)
     shell: """
     module load {params.multiqc}
@@ -885,7 +885,7 @@ rule cfChIPtool:
             out1=join(workpath,cfTool_subdir2,"{name}.Q5DD.tagAlign.gz"),
             out2=join(workpath,cfTool_dir,"Output","H3K4me3","Signatures","{name}.Q5DD.csv"),
         params:
-            rname='pl:cfChiP',
+            rname='cfChiP',
             rver="R/4.1.0",
             toolkit = config['references']['cfChIP_TOOLS_SRC'],
             tmpfile = lambda w: join(workpath,cfTool_subdir2, w.name + ".Q5DD.tagAlign"),
@@ -910,7 +910,7 @@ rule deeptools_enhancer:
         Enhline=join(workpath,deeptools_dir,"{group}.Enh_profile.{ext}.pdf"),
         Enhmat=temp(join(workpath,deeptools_dir,"{group}.Enh.{ext}.mat.gz")),
     params:
-        rname="pl:deeptools_enhancer",
+        rname="deeptools_enhancer",
         deeptoolsver=config['tools']['DEEPTOOLSVER'],
         bed=join(workpath,"human_permissive_enhancers_phase_1_and_2.bed.gz"),
         nthreads="16"
