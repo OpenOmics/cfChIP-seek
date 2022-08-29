@@ -274,7 +274,7 @@ rule BWA_PE:
         reference=config['references']['BWA'],
         bwaver=config['tools']['BWAVER'],
         samtoolsver=config['tools']['SAMTOOLSVER'],
-        script=join(workpath,"Scripts","bam_filter_by_mapq.py"),
+        script=join(workpath,"scripts","bam_filter_by_mapq.py"),
         pythonver="python/3.5"
     output:
         outbam1=join(workpath,bam_dir,"{name}.sorted.bam"), 
@@ -367,16 +367,17 @@ rule ppqt:
     params:
         rname="ppqt",
         samtoolsver=config['tools']['SAMTOOLSVER'],
+        ppqt_script=join(workpath,"scripts","ppqt","run_spp.R"),
         rver=config['tools']['RVER'],
     run:
         commoncmd="module load {params.samtoolsver};module load {params.rver};"
         if se=="yes":
-            cmd="Rscript Scripts/phantompeakqualtools/run_spp.R \
+            cmd="Rscript {params.ppqt_script} \
                 -c={input.bam} -savp={output.pdf} -out={output.ppqt} -tmpdir=/lscratch/$SLURM_JOBID -rf;"
         elif pe=="yes":
             cmd="samtools view -b -f 66 -o /lscratch/$SLURM_JOBID/bam1.f66.bam {input.bam}; \
                 samtools index /lscratch/$SLURM_JOBID/bam1.f66.bam; \
-                Rscript Scripts/phantompeakqualtools/run_spp.R \
+                Rscript {params.ppqt_script} \
                 -c=/lscratch/$SLURM_JOBID/bam1.f66.bam -savp={output.pdf} -out={output.ppqt} \
                 -tmpdir=/lscratch/$SLURM_JOBID -rf;"
         shell(commoncmd+cmd)
@@ -655,7 +656,7 @@ rule NRF:
         samtoolsver=config['tools']['SAMTOOLSVER'],
         rver=config['tools']['RVER'],
         preseqver=config['tools']['PRESEQVER'],
-        nrfscript=join(workpath,"Scripts","atac_nrf.py "),            
+        nrfscript=join(workpath,"scripts","atac_nrf.py "),            
     output:
         preseq=join(workpath,qc_dir,"{name}.preseq.dat"),
         preseqlog=join(workpath,qc_dir,"{name}.preseq.log"),
@@ -780,7 +781,7 @@ rule ngsqc_plot:
         png=expand(join(workpath,"QC","{group}.NGSQC.Q5DD.png"),group=groups),
     params:
         rname="ngsqc_plot",
-        script=join(workpath,"Scripts","ngsqc_plot.py"),
+        script=join(workpath,"scripts","ngsqc_plot.py"),
     run:
         commoncmd1 = "if [ ! -e /lscratch/$SLURM_JOBID ]; then mkdir /lscratch/$SLURM_JOBID ;fi"
         commoncmd2 = "cd /lscratch/$SLURM_JOBID;"
@@ -813,7 +814,7 @@ rule QCstats:
         ppqt2=join(workpath,bam_dir,"Q5DD.ppqt.txt"),
     params:
         rname='QCstats',
-        filterCollate=join(workpath,"Scripts","filterMetrics"),   
+        filterCollate=join(workpath,"scripts","filterMetrics"),   
     output:
         sampleQCfile=temp(join(workpath,qc_dir,"{name}.qcmetrics")),
     threads: 16
@@ -841,7 +842,7 @@ rule QCTable:
     params:
         rname='QCTable',
         inputstring=" ".join(expand(join(workpath,qc_dir,"{name}.qcmetrics"), name=samples)),
-        filterCollate=join(workpath,"Scripts","createtable"),
+        filterCollate=join(workpath,"scripts","createtable"),
     output:
         qctable=join(workpath,qc_dir,"QCTable.txt"),
     threads: 16
