@@ -275,7 +275,7 @@ rule BWA_PE:
         reference=config['references']['BWA'],
         bwaver=config['tools']['BWAVER'],
         samtoolsver=config['tools']['SAMTOOLSVER'],
-        script=join(workpath,"scripts","bam_filter_by_mapq.py"),
+        script=join(workpath,"workflow","scripts","bam_filter_by_mapq.py"),
         pythonver="python/3.5"
     output:
         outbam1=join(workpath,bam_dir,"{name}.sorted.bam"), 
@@ -368,7 +368,7 @@ rule ppqt:
     params:
         rname="ppqt",
         samtoolsver=config['tools']['SAMTOOLSVER'],
-        ppqt_script=join(workpath,"scripts","ppqt","run_spp.R"),
+        ppqt_script=join(workpath,"workflow","scripts","ppqt","run_spp.R"),
         rver=config['tools']['RVER'],
     run:
         commoncmd="module load {params.samtoolsver};module load {params.rver};"
@@ -657,7 +657,7 @@ rule NRF:
         samtoolsver=config['tools']['SAMTOOLSVER'],
         rver=config['tools']['RVER'],
         preseqver=config['tools']['PRESEQVER'],
-        nrfscript=join(workpath,"scripts","atac_nrf.py "),            
+        nrfscript=join(workpath,"workflow","scripts","atac_nrf.py "),            
     output:
         preseq=join(workpath,qc_dir,"{name}.preseq.dat"),
         preseqlog=join(workpath,qc_dir,"{name}.preseq.log"),
@@ -782,7 +782,7 @@ rule ngsqc_plot:
         png=expand(join(workpath,"QC","{group}.NGSQC.Q5DD.png"),group=groups),
     params:
         rname="ngsqc_plot",
-        script=join(workpath,"scripts","ngsqc_plot.py"),
+        script=join(workpath,"workflow","scripts","ngsqc_plot.py"),
     run:
         commoncmd1 = "if [ ! -e /lscratch/$SLURM_JOBID ]; then mkdir /lscratch/$SLURM_JOBID ;fi"
         commoncmd2 = "cd /lscratch/$SLURM_JOBID;"
@@ -815,7 +815,7 @@ rule QCstats:
         ppqt2=join(workpath,bam_dir,"Q5DD.ppqt.txt"),
     params:
         rname='QCstats',
-        filterCollate=join(workpath,"scripts","filterMetrics"),   
+        filterCollate=join(workpath,"workflow","scripts","filterMetrics"),   
     output:
         sampleQCfile=temp(join(workpath,qc_dir,"{name}.qcmetrics")),
     threads: 16
@@ -843,7 +843,7 @@ rule QCTable:
     params:
         rname='QCTable',
         inputstring=" ".join(expand(join(workpath,qc_dir,"{name}.qcmetrics"), name=samples)),
-        filterCollate=join(workpath,"scripts","createtable"),
+        filterCollate=join(workpath,"workflow","scripts","createtable"),
     output:
         qctable=join(workpath,qc_dir,"QCTable.txt"),
     threads: 16
