@@ -696,19 +696,19 @@ rule fastqc:
     params:
         rname='fastqc',
         batch='--cpus-per-task=32 --mem=110g --time=48:00:00',
-        fastqcver=config['tools']['FASTQCVER']
+        fastqcver=config['tools']['FASTQCVER'],
+        folder=join(workpath,'fastQC'),
     input:
         expand(join(workpath,trim_dir,"{name}.R1.trim.fastq.gz"),name=samples) if \
             se == "yes" else \
             expand(join(workpath,trim_dir,"{name}.R{rn}.trim.fastq.gz"), name=samples,rn=[1,2])
     output:
-        folder=join(workpath,'fastQC'),
         html=expand(join(workpath,'fastQC',"{name}.R1.trim_fastqc.html"),name=samples)
     threads: 32
     shell: """
-    mkdir -p {output.folder};
+    mkdir -p {params.folder};
     module load {params.fastqcver};
-    fastqc {input} -t {threads} -o {output.folder}
+    fastqc {input} -t {threads} -o {params.folder}
     """
 
 
