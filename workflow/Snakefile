@@ -150,8 +150,8 @@ qc_dir="QC"
 cfTool_dir="cfChIPtool"
 cfTool_subdir1="cfChIPtool/BED"
 cfTool_subdir2="cfChIPtool/BED/H3K4me3"
-cfTool_subdir3="cfChIPtool/samples"
-cfTool_subdir4="cfChIPtool/samples/H3K4me3"
+cfTool_subdir3="cfChIPtool/Samples"
+cfTool_subdir4="cfChIPtool/Samples/H3K4me3"
 
 
 for d in [trim_dir,kraken_dir,bam_dir,bw_dir,deeptools_dir,extra_fingerprint_dir,qc_dir,cfTool_dir, cfTool_subdir1, cfTool_subdir2, cfTool_subdir3, cfTool_subdir4]:
@@ -891,11 +891,12 @@ rule cfChIPtool:
             rver="R/4.1.0",
             toolkit = config['references']['cfChIP_TOOLS_SRC'],
             tmpfile = lambda w: join(workpath,cfTool_subdir2, w.name + ".Q5DD.tagAlign"),
+        container:
+            config['images']['cfchip']
         shell: """
-        module load {params.rver}; 
         cp {input} {params.tmpfile}
         gzip {params.tmpfile}
-        Rscript --vanilla {params.toolkit}/ProcessBEDFiles.R \\
+        Rscript {params.toolkit}/ProcessBEDFiles.R \\
             -a {params.toolkit}/SetupFiles/H3K4me3 \\
             -r {cfTool_dir} \\
             -p {cfTool_dir} \\

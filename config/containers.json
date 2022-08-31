@@ -1,4 +1,5 @@
 {
     "images": {
+        "cfchip": "docker://skchronicles/cfchip_toolkit:v0.1.0"
     }
 }
