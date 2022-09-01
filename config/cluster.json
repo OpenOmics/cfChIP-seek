@@ -66,6 +66,6 @@
     },
     "multiqc": {
         "mem": "24g",
-        "threads": "2",
+        "threads": "2"
     }
 }
