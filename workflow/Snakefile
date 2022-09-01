@@ -24,6 +24,12 @@ configfile: "config.json"
 samples  = config['samples']
 workpath = config['project']['workpath']
 
+# Analysis options
+# Run differential binding pipeline
+run_dba = True 
+if config['options']['contrasts'] == 'None':
+    run_dba = False
+
 # Read in resource information,
 # containing information about 
 # threads, mem, walltimes, etc.
@@ -188,7 +194,9 @@ rule all:
         # QC Table
         join(workpath,qc_dir,"QCTable.txt"),
         expand(join(workpath,qc_dir,"{name}.{ext}.insert_size_metrics.txt"),name=samples,ext=extensions2),
-        expand(join(workpath,cfTool_dir,"Output","H3K4me3","Signatures","{name}.Q5DD.csv"),name=H3K4me3samples)
+        expand(join(workpath,cfTool_dir,"Output","H3K4me3","Signatures","{name}.Q5DD.csv"),name=H3K4me3samples),
+        # Differential Binding Pipeline Target
+        provided([join(workpath, 'dba.done')], run_dba)
 
 
 # trim, remove PolyX and remove BL reads
@@ -977,3 +985,9 @@ rule deeptools_enhancer:
         shell(commoncmd+cmd3)
         shell(commoncmd+cmd5)
         shell(commoncmd+cmd7)
+
+
+
+# Import local rules
+if run_dba:
+    include: join("rules", "dba.smk")
