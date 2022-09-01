@@ -90,7 +90,7 @@ process_json <- function(injson) {
 }
 
 allData <- merge_files(folder)
-groupList <- process_json(paste0(folder,"/run.json"))
+groupList <- process_json(paste0(folder,"/config.json"))
 
 for (i in 1:length(groupList)) {
   group <- groupList[[i]]

@@ -241,6 +241,8 @@ rule jaccard:
         outroot = lambda w: join(workpath,qc_dir,w.PeakTool),
         script=join(workpath,"workflow","scripts","jaccard_score.py"),
         genome = config['references']['REFLEN']
+    envmodules:
+        config['tools']['BEDTOOLSVER']
     shell: """
     python {params.script} -i "{input}" -o "{params.outroot}" -g {params.genome}
     """
@@ -381,6 +383,8 @@ rule manorm:
     params:
         rname='manorm',
         bedtoolsver=config['tools']['BEDTOOLSVER'],
+        sample1= lambda w: groupdata[w.group1][0],
+        sample2= lambda w: groupdata[w.group2][0],
         manormver="manorm/1.1.4"
     run:
         commoncmd1 = "if [ ! -e /lscratch/$SLURM_JOBID ]; then mkdir /lscratch/$SLURM_JOBID; fi "
