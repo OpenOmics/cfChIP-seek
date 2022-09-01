@@ -374,7 +374,6 @@ rule manorm:
         peak1 = lambda w: join(workpath, w.tool, groupdata[w.group1][0], groupdata[w.group1][0] + PeakExtensions[w.tool]),
         peak2 = lambda w: join(workpath, w.tool, groupdata[w.group2][0], groupdata[w.group2][0] + PeakExtensions[w.tool]),
     output:
-        fldr = join(workpath,manorm_dir,"{group1}_vs_{group2}-{tool}"),
         xls = join(workpath,manorm_dir,"{group1}_vs_{group2}-{tool}","{group1}_vs_{group2}-{tool}_all_MAvalues.xls"),
         bed = temp(join(workpath,manorm_dir,"{group1}_vs_{group2}-{tool}","{group1}_vs_{group2}-{tool}_all_MA.bed")),
         wigA = join(workpath,manorm_dir,"{group1}_vs_{group2}-{tool}","output_tracks","{group1}_vs_{group2}_A_values.wig.gz"),
@@ -382,6 +381,7 @@ rule manorm:
         wigP = join(workpath,manorm_dir,"{group1}_vs_{group2}-{tool}","output_tracks","{group1}_vs_{group2}_P_values.wig.gz"),
     params:
         rname='manorm',
+        fldr = join(workpath,manorm_dir,"{group1}_vs_{group2}-{tool}"),
         bedtoolsver=config['tools']['BEDTOOLSVER'],
         sample1= lambda w: groupdata[w.group1][0],
         sample2= lambda w: groupdata[w.group2][0],
@@ -397,9 +397,9 @@ rule manorm:
         file=list(map(lambda z:z.strip().split(),open(input.ppqt,'r').readlines()))
         extsize1 = [ ppqt[1] for ppqt in file if ppqt[0] == params.sample1 ][0]
         extsize2 = [ ppqt[1] for ppqt in file if ppqt[0] == params.sample2 ][0]
-        cmd5 = "manorm --p1 peak1.bed --p2 peak2.bed --r1 bam1.bed --r2 bam2.bed --s1 " + extsize1  + " --s2 " + extsize2 + " -o {output.fldr} --name1 '" + wildcards.group1 + "' --name2 '" + wildcards.group2 + "'; "
-        cmd6 = "gzip {output.fldr}/output_tracks/*wig; "
-        cmd7 = "mv {output.fldr}/" + wildcards.group1 + "_vs_" + wildcards.group2 + "_all_MAvalues.xls {output.xls}; "
+        cmd5 = "manorm --p1 peak1.bed --p2 peak2.bed --r1 bam1.bed --r2 bam2.bed --s1 " + extsize1  + " --s2 " + extsize2 + " -o {params.fldr} --name1 '" + wildcards.group1 + "' --name2 '" + wildcards.group2 + "'; "
+        cmd6 = "gzip {params.fldr}/output_tracks/*wig; "
+        cmd7 = "mv {params.fldr}/" + wildcards.group1 + "_vs_" + wildcards.group2 + "_all_MAvalues.xls {output.xls}; "
         cmd8 = "tail -n +2 {output.xls} | nl -w2 | awk -v OFS='\t' '{{print $2,$3,$4,$9$1,$6}}' > {output.bed}"
         shell(commoncmd1)
         shell( commoncmd2 + commoncmd3 + cmd1 + cmd2 + cmd3 + cmd4 + cmd5 + cmd6 + cmd7 + cmd8 )
