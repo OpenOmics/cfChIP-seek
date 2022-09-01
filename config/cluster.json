@@ -4,7 +4,7 @@
         "mem": "48g",
         "partition": "norm",
         "threads": "4",
-        "time": "4-00:00:00"
+        "time": "1-18:00:00"
     },
     "trim_pe": {
         "mem": "64g",
@@ -17,7 +17,7 @@
     },
     "BWA_PE": {
         "threads": "32",
-        "mem": "48g",
+        "mem": "220g",
         "gres": "lscratch:64"
     },
     "picard_dedup": {
@@ -53,12 +53,12 @@
     "fastqc": {
         "mem": "24g",
         "threads": "32",
-        "time": "1-00:00:00"
+        "time": "18:00:00"
     },
     "fastq_screen": {
         "mem": "24g",
         "threads": "24",
-        "time": "2-00:00:00"
+        "time": "18:00:00"
     },
     "ngsqc": {
         "threads": "1",
@@ -67,6 +67,5 @@
     "multiqc": {
         "mem": "24g",
         "threads": "2",
-        "time": "1-00:00:00"
     }
 }
