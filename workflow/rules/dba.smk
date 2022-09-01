@@ -188,7 +188,7 @@ if reps == "yes":
     rule ChIPseq:
         input:
             expand(join(workpath,macsN_dir,"{name}","{name}_peaks.narrowPeak"),name=chips),
-            expand(join(workpath,qc_dir,"{Group}.FRiP_barplot.pdf"),Group=groups),
+            # expand(join(workpath,qc_dir,"{Group}.FRiP_barplot.pdf"),Group=groups),
             expand(join(workpath,qc_dir,'{PeakTool}_jaccard.txt'),PeakTool=PeakTools),
             expand(join(workpath,uropa_dir,'{PeakTool}','{name}_{PeakTool}_uropa_{type}_allhits.txt'),PeakTool=PeakTools,name=chips,type=UropaCats),
             expand(join(workpath, uropa_dir,diffbind_dir,'{name}_{PeakTool}_uropa_{type}_allhits.txt'),PeakTool=['DiffbindEdgeR','DiffbindDeseq2','DiffbindConsensus'],name=contrasts,type=UropaCats),
@@ -199,7 +199,7 @@ else:
     rule ChIPseq:
         input:
             expand(join(workpath,macsN_dir,"{name}","{name}_peaks.narrowPeak"),name=chips),
-            expand(join(workpath,qc_dir,"{Group}.FRiP_barplot.pdf"),Group=groups),
+            # expand(join(workpath,qc_dir,"{Group}.FRiP_barplot.pdf"),Group=groups),
             expand(join(workpath,qc_dir,'{PeakTool}_jaccard.txt'),PeakTool=PeakTools),
             expand(join(workpath,uropa_dir,'{PeakTool}','{name}_{PeakTool}_uropa_{type}_allhits.txt'),PeakTool=PeakTools,name=chips,type=UropaCats),
             expand(join(workpath,uropa_dir,'{PeakTool}','{name}_{PeakTool}_uropa_{type}_allhits.txt'),PeakTool="MANorm",name=contrasts,type=UropaCats),
@@ -402,3 +402,4 @@ rule manorm:
         cmd7 = "mv {output.fldr}/" + wildcards.group1 + "_vs_" + wildcards.group2 + "_all_MAvalues.xls {output.xls}; "
         cmd8 = "tail -n +2 {output.xls} | nl -w2 | awk -v OFS='\t' '{{print $2,$3,$4,$9$1,$6}}' > {output.bed}"
         shell(commoncmd1)
+        shell( commoncmd2 + commoncmd3 + cmd1 + cmd2 + cmd3 + cmd4 + cmd5 + cmd6 + cmd7 + cmd8 )
