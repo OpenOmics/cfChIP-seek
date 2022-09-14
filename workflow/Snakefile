@@ -529,9 +529,9 @@ rule deeptools_QC:
         bws=listfile[1]
         labels=listfile[2]
         cmd1="multiBigwigSummary bins -b "+" ".join(bws)+" -l "+" ".join(labels)+" -out "+output.npz
-        cmd2="plotCorrelation -in "+output.npz+" -o "+output.heatmap+" -c 'spearman' -p 'heatmap' --skipZeros --removeOutliers --plotNumbers"
+        cmd2="plotCorrelation -in "+output.npz+" -o "+output.heatmap+" -c 'spearman' -p 'heatmap' --skipZeros --removeOutliers"
         cmd4="plotPCA -in "+output.npz+" -o "+output.pca
-        cmd5="plotCorrelation -in "+output.npz+" -o "+ params.png +" -c 'spearman' -p 'heatmap' --skipZeros --removeOutliers --plotNumbers"
+        cmd5="plotCorrelation -in "+output.npz+" -o "+ params.png +" -c 'spearman' -p 'heatmap' --skipZeros --removeOutliers"
         shell(commoncmd+cmd1)
         shell(commoncmd+cmd2)
         shell(commoncmd+cmd4)
