@@ -5,22 +5,23 @@ The `cfChIP-seek` executable is composed of several inter-related sub commands. 
 
 This part of the documentation describes options and concepts for <code>cfChIP-seek <b>run</b></code> sub command in more detail. With minimal configuration, the **`run`** sub command enables you to start running cfChIP-seek pipeline. 
 
-Setting up the cfChIP-seek pipeline is fast and easy! In its most basic form, <code>cfChIP-seek <b>run</b></code> only has *two required inputs*.
+Setting up the cfChIP-seek pipeline is fast and easy! In its most basic form, <code>cfChIP-seek <b>run</b></code> only has *three required inputs*.
 
 ## 2. Synopsis
 ```text
 $ cfChIP-seek run [--help] \
-      [--mode {slurm,local}] [--job-name JOB_NAME] [--batch-id BATCH_ID] \
-      [--tmp-dir TMP_DIR] [--silent] [--sif-cache SIF_CACHE] \ 
-      [--singularity-cache SINGULARITY_CACHE] \
-      [--dry-run] [--threads THREADS] \
+      [--dry-run] [--job-name JOB_NAME] [--mode {slurm,local}] \
+      [--sif-cache SIF_CACHE] [--singularity-cache SINGULARITY_CACHE] \
+      [--silent] [--threads THREADS] [--tmp-dir TMP_DIR] \
+      [--contrasts CONTRASTS] \
       --input INPUT [INPUT ...] \
-      --output OUTPUT
+      --output OUTPUT \
+      --peakcall PEAKCALL
 ```
 
 The synopsis for each command shows its arguments and their usage. Optional arguments are shown in square brackets.
 
-A user **must** provide a list of FastQ (globbing is supported) to analyze via `--input` argument and an output directory to store results via `--output` argument.
+A user **must** provide a list of FastQ (globbing is supported) to analyze via `--input` argument and an output directory to store results via `--output` argument, and a peakcall file to pair ChIP and Input samples and define groups of samples.
 
 Use you can always use the `-h` option for information on a specific command. 
 
@@ -45,11 +46,43 @@ Each of the following arguments are required. Failure to provide a required argu
 > 
 > ***Example:*** `--output /data/$USER/cfChIP-seek_out`
 
+
+---  
+  `--peakcall PEAKCALL`
+> **Peakcall file.**   
+> *type: file*
+>   
+> This tab delimited (TSV) file is used to pair each ChIP sample to its corresponding input sample and to assign any groups that are associated with said sample. Please note that multiple groups can be assigned to a given sample using a comma. Group information is used to setup comparsions within groups of samples. This file consists of three columns containing the name of each ChIP sample, the name of each Input sample, and the name of any of its groups. The header of this file needs to be `ChIP` for the chips column, `Input` for the inputs column, and `Group` for the groups column. The base name of each sample should be listed in the `ChIP` and `Input` columns. The base name of a given sample can be determined by removing its file extension from the sample's R1 FastQ file, example: `WT_S4.R1.fastq.gz` becomes `WT_S4` in the peakcall file.
+> **Contents of example peakcalls file:** 
+> ```
+> ChIP	Input	Group
+> WT_S1	IN_S1	G1,G3
+> WT_S2	IN_S2	G1,G3
+> WT_S3	IN_S3	G1
+> WT_S4	IN_S4	G2,G4
+> WT_S5	IN_S5	G2,G4
+> WT_S6	IN_S6	G2
+> ```
+> ***Example:*** `--peakcall /data/$USER/peakcall.tsv`
+
 ### 2.2 Analysis options
 
 Each of the following arguments are optional, and do not need to be provided. 
 
-...add non-required analysis options 
+#### 2.2.1 Differential Binding 
+
+  `--contrasts CONTRASTS`
+> **Contrasts file.**   
+> *type: file*
+>   
+> This tab delimited (TSV) file is used to setup comparisons within different groups of samples. Please see the `--peakcall` option above for more information about how to define groups within a set of samples. This file consists of two columns containing the names of two groups to compare. The names defined in this file must also exist in the peakcall file.
+> **Contents of example contrasts file:** 
+> ```
+> G2 	G1
+> G4 	G1
+> G4 	G3
+> ```
+> ***Example:*** `--contrasts /data/$USER/contrasts.tsv`
 
 ### 2.3 Orchestration options
 

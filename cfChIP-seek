@@ -307,8 +307,9 @@ def parsed_arguments(name, description):
 
         {3}{4}Description:{5}
           To run the cell-free ChIP-sequencing pipeline with your raw data, please
-        provide a space seperated list of FastQ (globbing is supported) and an output 
-        directory to store results. 
+        provide a space seperated list of FastQ (globbing is supported), an output 
+        directory to store results, and a peakcall file to pair ChIP and Input 
+        samples & define groups of samples.
 
         {3}{4}Required arguments:{5}
           --input INPUT [INPUT ...]
@@ -358,9 +359,9 @@ def parsed_arguments(name, description):
                                 comparisons within different groups of samples. Please 
                                 see the --peakcall option for more information about 
                                 how to define groups within a set of samples. This file
-                                This file consists of two columns containing the names 
-                                of two groups to compare. The names defined in this file
-                                must also exist in the peakcall file.
+                                consists of two columns containing the names of each 
+                                group to compare. The names defined in this file must 
+                                also exist in the peakcall file.
                                   Contents of example contrasts file:
                                     G2  G1
                                     G4  G1
