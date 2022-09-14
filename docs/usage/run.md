@@ -52,7 +52,8 @@ Each of the following arguments are required. Failure to provide a required argu
 > **Peakcall file.**   
 > *type: file*
 >   
-> This tab delimited (TSV) file is used to pair each ChIP sample to its corresponding input sample and to assign any groups that are associated with said sample. Please note that multiple groups can be assigned to a given sample using a comma. Group information is used to setup comparsions within groups of samples. This file consists of three columns containing the name of each ChIP sample, the name of each Input sample, and the name of any of its groups. The header of this file needs to be `ChIP` for the chips column, `Input` for the inputs column, and `Group` for the groups column. The base name of each sample should be listed in the `ChIP` and `Input` columns. The base name of a given sample can be determined by removing its file extension from the sample's R1 FastQ file, example: `WT_S4.R1.fastq.gz` becomes `WT_S4` in the peakcall file.
+> This tab delimited (TSV) file is used to pair each ChIP sample to its corresponding input sample and to assign any groups that are associated with said sample. Please note that multiple groups can be assigned to a given sample using a comma. Group information is used to setup comparsions within groups of samples. This file consists of three columns containing the name of each ChIP sample, the name of each Input sample, and the name of any of its groups. The header of this file needs to be `ChIP` for the chips column, `Input` for the inputs column, and `Group` for the groups column. The base name of each sample should be listed in the `ChIP` and `Input` columns. The base name of a given sample can be determined by removing its file extension from the sample's R1 FastQ file, example: `WT_S4.R1.fastq.gz` becomes `WT_S4` in the peakcall file.   
+> 
 > **Contents of example peakcalls file:** 
 > ```
 > ChIP	Input	Group
@@ -75,8 +76,9 @@ Each of the following arguments are optional, and do not need to be provided.
 > **Contrasts file.**   
 > *type: file*
 >   
-> This tab delimited (TSV) file is used to setup comparisons within different groups of samples. Please see the `--peakcall` option above for more information about how to define groups within a set of samples. This file consists of two columns containing the names of two groups to compare. The names defined in this file must also exist in the peakcall file.
-> **Contents of example contrasts file:** 
+> This tab delimited (TSV) file is used to setup comparisons within different groups of samples. Please see the `--peakcall` option above for more information about how to define groups within a set of samples. This file consists of two columns containing the names of two groups to compare. The names defined in this file must also exist in the peakcall file.  
+> 
+> **Contents of example contrasts file:**  
 > ```
 > G2 	G1
 > G4 	G1
