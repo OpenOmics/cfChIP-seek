@@ -25,6 +25,6 @@
         "SAMTOOLSVER": "samtools/1.6",
         "SICERVER": "sicer/1.1",
         "UCSCVER": "ucsc/384",
-        "UROPAVER": "uropa/2.0.3"
+        "UROPAVER": "uropa/4.0.2"
     }
 }
