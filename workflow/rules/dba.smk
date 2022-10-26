@@ -175,7 +175,7 @@ manorm_dir = "MANorm"
 
 otherDirs = [qc_dir, homer_dir, uropa_dir]
 if reps == "yes":
-    otherDirs.append(idr_dir)
+#    otherDirs.append(idr_dir)
     otherDirs.append(diffbind_dir)
 
 for d in PeakTools + otherDirs:
@@ -365,7 +365,9 @@ rule diffbind:
         f.close()
         cmd1 = "module load {params.Rver}; cp {params.rscript2} {params.outdir}; cd {params.outdir}; "
         cmd2 = "Rscript {params.rscript1} '.' {output.html} {params.csvfile} '{params.contrast}' '{wildcards.PeakTool}' '{params.projectID}' '{params.projDesc}'"
-        shell( cmd1 + cmd2 )
+        cmd3 = "if [ ! -f {output.Deseq2} ]; then touch {output.Deseq2}; fi"
+        cmd4 = "if [ ! -f {output.EdgeR} ]; then touch	{output.EdgeR}; fi"
+        shell( cmd1 + cmd2 + cmd3 + cmd4)
 
 
 rule manorm:
