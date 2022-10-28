@@ -188,7 +188,7 @@ if reps == "yes":
     rule ChIPseq:
         input:
             expand(join(workpath,macsN_dir,"{name}","{name}_peaks.narrowPeak"),name=chips),
-            # expand(join(workpath,qc_dir,"{Group}.FRiP_barplot.pdf"),Group=groups),
+            expand(join(workpath,qc_dir,"{Group}.FRiP_barplot.pdf"),Group=groups),
             expand(join(workpath,qc_dir,'{PeakTool}_jaccard.txt'),PeakTool=PeakTools),
             expand(join(workpath,uropa_dir,'{PeakTool}','{name}_{PeakTool}_uropa_{type}_allhits.txt'),PeakTool=PeakTools,name=chips,type=UropaCats),
             expand(join(workpath, uropa_dir,diffbind_dir,'{name}_{PeakTool}_uropa_{type}_allhits.txt'),PeakTool=['DiffbindEdgeR','DiffbindDeseq2','DiffbindConsensus'],name=contrasts,type=UropaCats),
@@ -253,7 +253,7 @@ rule FRiP:
         bed = lambda w: [ join(workpath, w.PeakTool, chip, chip + PeakExtensions[w.PeakTool]) for chip in chips ],
         bam = join(workpath,bam_dir,"{Sample}.Q5DD.bam"),
      output:
-        temp(join(workpath,qc_dir,"{PeakTool}.{Sample}.Q5DD.FRiP_table.txt")),
+        join(workpath,qc_dir,"{PeakTool}.{Sample}.Q5DD.FRiP_table.txt"),
      params:
         rname="frip",
         pythonver="python/3.5",
@@ -273,7 +273,7 @@ rule FRiP_plot:
         expand(join(workpath, qc_dir, "{Group}.FRiP_barplot.pdf"),Group=groups),
      params:
         rname="frip_plot",
-        Rver="R/3.5",
+        Rver="R/4.2",
         script=join(workpath,"workflow","scripts","FRiP_plot.R"),
      shell: """
     module load {params.Rver}
@@ -364,9 +364,9 @@ rule diffbind:
         f.write ("\n".join(samplesheet))
         f.close()
         cmd1 = "module load {params.Rver}; cp {params.rscript2} {params.outdir}; cd {params.outdir}; "
-        cmd2 = "Rscript {params.rscript1} '.' {output.html} {params.csvfile} '{params.contrast}' '{wildcards.PeakTool}' '{params.projectID}' '{params.projDesc}'"
-        cmd3 = "if [ ! -f {output.Deseq2} ]; then touch {output.Deseq2}; fi"
-        cmd4 = "if [ ! -f {output.EdgeR} ]; then touch	{output.EdgeR}; fi"
+        cmd2 = "Rscript {params.rscript1} '.' {output.html} {params.csvfile} '{params.contrast}' '{wildcards.PeakTool}' '{params.projectID}' '{params.projDesc}'; "
+        cmd3 = "if [ ! -f {output.Deseq2} ]; then touch {output.Deseq2}; fi; "
+        cmd4 = "if [ ! -f {output.EdgeR} ]; then touch	{output.EdgeR}; fi; "
         shell( cmd1 + cmd2 + cmd3 + cmd4)
 
 
