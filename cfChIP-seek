@@ -137,7 +137,7 @@ def run(sub_args):
     # The contrast.tsv file defines comparsions
     # to be made with groups of samples.
     # Add peakcall information to config.json
-    chip2input, groups = peakcalls(sub_args.peakcall)
+    chip2input, groups, blocks = peakcalls(sub_args.peakcall)
     # Adding peakcall information to projects
     chips_samples = list(chip2input.keys())
     input_samples = chip2input
@@ -145,6 +145,7 @@ def run(sub_args):
     config['project']['peaks']['chips'] = chips_samples
     config['project']['peaks']['inputs'] = input_samples 
     config['project']['groups'] = groups
+    config['project']['blocks'] = blocks
     # Running some basic vaildation, checking 
     # that samples defined in the peakcall 
     # file have a corresponding FastQ file,
