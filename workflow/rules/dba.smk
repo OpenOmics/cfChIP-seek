@@ -212,17 +212,17 @@ else:
 rule MACS2_narrow:
     input:
         chip = join(workpath,bam_dir,"{name}.Q5DD.bam"),
+        ctrl = lambda w : join(workpath,bam_dir,chip2input[w.name] + ".Q5DD.bam"),
     output:
         join(workpath,macsN_dir,"{name}","{name}_peaks.narrowPeak"),
     params:
         rname='MACS2_narrow',
         gsize=config['references']['EFFECTIVEGENOMESIZE'],
         macsver=config['tools']['MACSVER'],
-        ctrl = lambda w : join(workpath,bam_dir,chip2input[w.name] + ".Q5DD.bam"),
     shell: """
     module load {params.macsver};
-    if [ {params.ctrl} != "{workpath}/{bam_dir}/.Q5DD.bam" ]; then
-        macs2 callpeak -t {input.chip} -c {params.ctrl} -g {params.gsize} -n {wildcards.name} \
+    if [ {input.ctrl} != "{workpath}/{bam_dir}/.Q5DD.bam" ]; then
+        macs2 callpeak -t {input.chip} -c {input.ctrl} -g {params.gsize} -n {wildcards.name} \
               --outdir {workpath}/{macsN_dir}/{wildcards.name} -q 0.01 --keep-dup="all" -f "BAMPE";
     else
         macs2 callpeak -t {input.chip} -g {params.gsize} -n {wildcards.name} \

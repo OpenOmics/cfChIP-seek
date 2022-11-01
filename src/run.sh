@@ -81,6 +81,7 @@ EOF
 function err() { cat <<< "$@" 1>&2; }
 function fatal() { cat <<< "$@" 1>&2; usage; exit 1; }
 function abspath() { readlink -e "$1"; }
+function timestamp() { date +"%Y-%m-%d_%H-%M-%S"; }
 function parser() {
   # Adds parsed command-line args to GLOBAL $Arguments associative array
   # + KEYS = short_cli_flag ("j", "o", ...)
@@ -176,6 +177,9 @@ function submit(){
   # unsetting XDG_RUNTIME_DIR to avoid some unsighly but harmless warnings
   unset XDG_RUNTIME_DIR
 
+  # Create a timestamp to append to snakemake log
+  ts=$(timestamp)
+
   # Run the workflow with specified executor
   case "$executor" in
     slurm)
@@ -218,8 +222,8 @@ function submit(){
 #SBATCH --parsable
 #SBATCH -J "$2"
 #SBATCH --mail-type=BEGIN,END,FAIL
-#SBATCH --output "$3/logfiles/snakemake.log"
-#SBATCH --error "$3/logfiles/snakemake.log"
+#SBATCH --output "$3/logfiles/snakemake_${ts}.log"
+#SBATCH --error "$3/logfiles/snakemake_${ts}.log"
 set -euo pipefail
 # Main process of pipeline
 snakemake --latency-wait 120 -s "$3/workflow/Snakefile" -d "$3" \\

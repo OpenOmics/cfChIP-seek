@@ -100,7 +100,8 @@ def run(sub_args):
     # The pipelines has only two requirements:
     # snakemake and singularity 
     require(['snakemake', 'singularity'], ['snakemake', 'singularity'])
-
+    c = Colors()
+    
     # Step 1. Initialize working directory,
     # copy over required resources to run 
     # the pipeline
@@ -137,7 +138,26 @@ def run(sub_args):
     # The contrast.tsv file defines comparsions
     # to be made with groups of samples.
     # Add peakcall information to config.json
-    chip2input, groups = peakcalls(sub_args.peakcall)
+    chip2input, groups, blocks = peakcalls(sub_args.peakcall)
+    # Check if optional Block column, if blocking 
+    # information exists, then each row must have 
+    # a value, error out if missing values (i.e. None)
+    if len(blocks.values()) != list(blocks.values()).count(None) and None in blocks.values():
+        missing_blocks = [k for k,v in blocks.items() if v is None]
+        # Missing fields in blocks column
+        err(
+            '{}{}Error: peakcall file contains missing Block information for these samples: {}'.format(
+                c.bg_red,
+                c.white,
+                c.end
+            )
+        )
+        fatal(
+            '\t └── {}'.format(
+                missing_blocks
+            )
+        )
+
     # Adding peakcall information to projects
     chips_samples = list(chip2input.keys())
     input_samples = chip2input
@@ -145,12 +165,12 @@ def run(sub_args):
     config['project']['peaks']['chips'] = chips_samples
     config['project']['peaks']['inputs'] = input_samples 
     config['project']['groups'] = groups
+    config['project']['blocks'] = blocks
     # Running some basic vaildation, checking 
     # that samples defined in the peakcall 
     # file have a corresponding FastQ file,
     # this will prevent/catch dryrun errors
     # before they happen.
-    c = Colors()
     peakcall_samples = list(set(chips_samples + list(input_samples.values())))
     peakcall_samples = [s for s in peakcall_samples if s.strip()]
     missing_inputs = []
@@ -342,14 +362,18 @@ def parsed_arguments(name, description):
                                 a given sample can be determined by removing its file
                                 extension from the sample's R1 FastQ file, example:
                                 WT_S4.R1.fastq.gz becomes WT_S4 in the peakcall file.
+                                An optional column, called Block, can also be provided 
+                                to block duplicate correlations between repeated obser-
+                                vations. Typically, blocks are biological replicates or 
+                                multiple samples from same indivdual.
                                   Contents of example peakcalls file:
-                                    ChIP	Input	Group
-                                    WT_S1	IN_S1	G1,G3
-                                    WT_S2	IN_S2	G1,G3
-                                    WT_S3	IN_S3	G1
-                                    WT_S4	IN_S4	G2,G4
-                                    WT_S5	IN_S5	G2,G4
-                                    WT_S6	IN_S6	G2
+                                    ChIP	Input	Group   Block
+                                    WT_S1	IN_S1	G1,G3   S1
+                                    WT_S2	IN_S2	G1,G3   S1
+                                    WT_S3	IN_S3	G1  S2
+                                    WT_S4	IN_S4	G2,G4   S2
+                                    WT_S5	IN_S5	G2,G4   S3
+                                    WT_S6	IN_S6	G2  S3
                                   Example: --peakcall /data/$USER/peakcall.tsv 
 
         {3}{4}Analysis options:{5}
