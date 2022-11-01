@@ -346,7 +346,7 @@ def parsed_arguments(name, description):
                                 provided working directory has not been initialized,
                                 it will be created automatically.
                                   Example: --output /data/$USER/output
-        --peakcall PEAKCALL
+          --peakcall PEAKCALL
                                 Peakcall file. This tab delimited file is used to pair
                                 each ChIP sample to its Input sample AND to assign any 
                                 groups that are associated with said sample. Please note 
