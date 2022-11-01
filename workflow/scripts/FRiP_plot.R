@@ -2,6 +2,7 @@
 ## Created by Tovah Markowitz
 ## June 19, 2020
 ## Updated: Jan 19, 2022
+## Updated: Oct 28, 2022
 
 args <- commandArgs(trailingOnly = TRUE)
 folder <- args[1]
@@ -38,12 +39,12 @@ plot_scatterplots <- function(inData, groupName, folder) {
     facet_wrap(.~bamsample) +
     theme_bw() + 
     scale_x_continuous(trans = "log10") +
-    annotation_logticks(sides="b") +
     labs(title=groupName, x="Number of Bases in Peaks (M)", 
          y="Fraction of Reads in Peaks (FRiP)",
          shape="peak file", color="peak calling tool")
+  q <- p + annotation_logticks(sides="b")
   pdf(paste0(folder, "/PeakQC/", groupName,".FRiP_scatterplot.pdf"))
-  print(p)
+  tryCatch(print(q), error = function(e) {print(p)})
   dev.off()
 }
 
