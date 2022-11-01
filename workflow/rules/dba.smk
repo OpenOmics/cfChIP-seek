@@ -336,7 +336,7 @@ rule diffbind:
         rname="diffbind",
         Rver = config['tools']['RVER'],
         rscript1 = join(workpath,"workflow","scripts","runDiffBind.R"),
-        rscript2 = join(workpath,"workflow","scripts","DiffBind_ChIP-seq.Rmd"),
+        rscript2 = join(workpath,"workflow","scripts","DiffBind_v3_ChIPseq.Rmd"),
         projectID = 'cfChIP-seek',
         projDesc  = config['project']['version'],
         outdir    = join(workpath,diffbind_dir,"{group1}_vs_{group2}-{PeakTool}"),
