@@ -122,6 +122,11 @@ RUN wget "https://bioconductor.org/packages/3.11/bioc/src/contrib/Archive/DiffBi
     && R CMD INSTALL DiffBind_2.15.2.tar.gz \
     && rm DiffBind_2.15.2.tar.gz
 
+# Extra packages for new DiffBind Rmarkdown report
+RUN Rscript -e 'install.packages(c("VennDiagram", "ggprism", "DT"), repos="http://cran.r-project.org")'
+# Bioconductor packages
+RUN Rscript -e 'BiocManager::install(c("org.Hs.eg.db"))'
+
 # Add Dockerfile and export env variables
 ADD Dockerfile /opt2/Dockerfile
 RUN chmod -R a+rX /opt2 
