@@ -164,37 +164,32 @@ for d in [trim_dir,kraken_dir,bam_dir,bw_dir,deeptools_dir,extra_fingerprint_dir
 	if not os.path.exists(join(workpath,d)):
 		os.mkdir(join(workpath,d))
 
+cfChIP="yes"
+
 # Final output files of the pipeline
 rule all:
     input: 
-        # Multiqc Report
+        # QC documents
         join(workpath,"Reports","multiqc_report.html"),
-        # FastqScreen
         expand(join(workpath,"FQscreen","{name}.R{rn}.trim_screen.png"),name=samples,rn=[1,2]),
         expand(join(workpath,"FQscreen2","{name}.R{rn}.trim_screen.png"),name=samples,rn=[1,2]),
-        # Kraken
-        expand(join(workpath,kraken_dir,"{name}.trim.fastq.kraken_bacteria.taxa.txt"),name=samples),
         expand(join(workpath,kraken_dir,"{name}.trim.fastq.kraken_bacteria.krona.html"),name=samples),
+        join(workpath,qc_dir,"QCTable.txt"),
+        expand(join(workpath,qc_dir,"{name}.{ext}.insert_size_metrics.txt"),name=samples,ext=extensions2),
         # Align using BWA and dedup with Picard
         expand(join(workpath,bam_dir,"{name}.{ext}"),name=samples,ext=extensions4),
         # BWA --> BigWig
         expand(join(workpath,bw_dir,"{name}.{ext}.bw",),name=samples,ext=extensions),
-        # Input Normalization
         expand(join(workpath,bw_dir,"{name}.Q5DD.RPGC.inputnorm.bw",),name=sampleswinput),
         # PhantomPeakQualTools
         expand(join(workpath,bam_dir,"{name}.{ext}.ppqt"),name=samples,ext=extensions2),
-        expand(join(workpath,bam_dir,"{name}.{ext}.pdf"),name=samples,ext=extensions2),
         # deeptools
         expand(join(workpath,deeptools_dir,"spearman_heatmap.{ext}.pdf"),ext=extensions),
-   	    expand(join(workpath,deeptools_dir,"{group}.fingerprint.{ext}.pdf"),group=groups,ext=extensions2),
+   	expand(join(workpath,deeptools_dir,"{group}.fingerprint.{ext}.pdf"),group=groups,ext=extensions2),
         expand(join(workpath,deeptools_dir,"{group}.metagene_heatmap.{ext}.pdf"), zip, group=deepgroups,ext=deepexts),
-        expand(join(workpath,deeptools_dir,"{group}.TSS_heatmap.{ext}.pdf"), zip, group=deepgroups,ext=deepexts),
-        expand(join(workpath,deeptools_dir,"{group}.metagene_profile.{ext}.pdf"), zip, group=deepgroups,ext=deepexts),
-        expand(join(workpath,deeptools_dir,"{group}.TSS_profile.{ext}.pdf"), zip, group=deepgroups,ext=deepexts),
-        # QC Table
-        join(workpath,qc_dir,"QCTable.txt"),
-        expand(join(workpath,qc_dir,"{name}.{ext}.insert_size_metrics.txt"),name=samples,ext=extensions2),
+        # cfChIP-specific
         expand(join(workpath,cfTool_dir,"Output","H3K4me3","Signatures","{name}.Q5DD.csv"),name=H3K4me3samples),
+        join(workpath,qc_dir,"H3K4me3_cfChIP_signature.txt"),
         # Differential Binding Pipeline Target
         provided([join(workpath, 'dba.done')], run_dba)
 
@@ -310,8 +305,8 @@ rule BWA_PE:
     samtools idxstats {output.outbam2} > {output.idxstat2}
     """  
 
-
-rule picard_dedup:
+if cfChIP == "yes":
+  rule picard_dedup:
     input: 
         bam2=join(workpath,bam_dir,"{name}.Q5.bam")
     output:
@@ -803,64 +798,6 @@ rule fastq_screen:
     """
 
 
-rule ngsqc:
-    input:
-        tagAlign=join(workpath,bam_dir,"{name}.Q5DD.tagAlign.gz") if \
-          se == "yes" else \
-          join(workpath,bam_dir,"{name}.Q5DD.bam")
-    output:
-        file=join(workpath,qc_dir,"{name}.Q5DD.NGSQC_report.txt"),
-    params:
-        rname="ngsqc",
-        bedtoolsver=config['tools']['BEDTOOLSVER'],
-        ngsqc=config['bin']['NGSQC'],
-        genomefile=config['references']['REFLEN']
-    shell: """
-    module load {params.bedtoolsver};
-    if [ ! -e /lscratch/$SLURM_JOBID ]; then mkdir /lscratch/$SLURM_JOBID; fi
-    cd /lscratch/$SLURM_JOBID;
-    # if se == "yes"
-    if [ {se} == "yes" ]; then
-        cp {input.tagAlign} tmptagAlign.gz
-        gzip -d tmptagAlign.gz
-    else
-        bamToBed -i {input.tagAlign} > tmptagAlign
-    fi
-    {params.ngsqc} -v -o tmpOut tmptagAlign {params.genomefile}
-    mv tmpOut/NGSQC_report.txt {output.file}
-    """
-
-
-rule ngsqc_plot:
-    input:
-        ngsqc=expand(join(workpath,"QC","{name}.Q5DD.NGSQC_report.txt"),name=samples),
-    output:
-        png=expand(join(workpath,"QC","{group}.NGSQC.Q5DD.png"),group=groups),
-    params:
-        rname="ngsqc_plot",
-        script=join(workpath,"workflow","scripts","ngsqc_plot.py"),
-    run:
-        commoncmd1 = "if [ ! -e /lscratch/$SLURM_JOBID ]; then mkdir /lscratch/$SLURM_JOBID ;fi"
-        commoncmd2 = "cd /lscratch/$SLURM_JOBID;"
-        cmd1 = ""
-        cmd2 = ""
-        cmd3 = ""
-        cmd4 = ""
-        sample = []
-        for group in groups:
-            labels = [ sample for sample in samples if sample in groupdatawinput[group] ]
-            cmd1 = cmd1 + "mkdir " + group + "; "
-            for label in labels:
-                cmd1 = cmd1 + "cp " + workpath + "/QC/" + label + ".Q5DD.NGSQC_report.txt " + group + "; " 
-                if label not in sample:
-                    cmd4 = cmd4 + "mv " + group + "/" + label + ".Q5DD.NGSQC.txt " + workpath + "/QC; "
-                    sample.append(label)
-            cmd2 = cmd2 + "python " + params.script + " -d '" + group + "' -e 'Q5DD' -g '" + group + "'; "
-            cmd3 = cmd3 + "mv " + group + "/" + group + ".NGSQC.Q5DD.png " + workpath + "/QC/" + group + ".NGSQC.Q5DD.png" + "; "
-        shell(commoncmd1)
-        shell(commoncmd2 + cmd1 + cmd2 + cmd3 + cmd4)
-
-
 rule QCstats:
     input:
         flagstat=join(workpath,bam_dir,"{name}.sorted.bam.flagstat"),
@@ -918,7 +855,6 @@ rule multiqc:
         join(workpath,qc_dir,"QCTable.txt"),
         expand(join(workpath,"rawfastQC","{name}.R1_fastqc.zip"),name=samples),
         expand(join(workpath,"fastQC","{name}.R1.trim_fastqc.zip"),name=samples),
-        expand(join(workpath,"QC","{group}.NGSQC.Q5DD.png"),group=groups),
         expand(join(workpath,deeptools_dir,"{group}.fingerprint.raw.Q5DD.tab"),group=groups),
         join(workpath,deeptools_dir,"spearman_heatmap.Q5DD.RPGC.pdf"),
     output:
@@ -936,7 +872,8 @@ rule multiqc:
 
 # TODO: Remove hardcoded H3K4me3, add as a command line option
 # from a list of available marks that are included with hg19
-rule cfChIPtool:
+if cfChIP == "yes":
+  rule cfChIPtool:
         input: 
             join(workpath,bam_dir,"{name}.Q5DD.tagAlign")
         output:
@@ -958,6 +895,24 @@ rule cfChIPtool:
             -p {cfTool_dir} \\
             -m H3K4me3 \\
             -S {output.out1}
+        """
+
+if cfChIP == "yes":
+  rule cfChIPcompile:
+        input:
+            expand(join(workpath,cfTool_dir,"Output","H3K4me3","Signatures","{name}.Q5DD.csv"),name=H3K4me3samples)
+        output:
+            txt=join(workpath,qc_dir,"H3K4me3_cfChIP_signature.txt"),
+            pdf=join(workpath,qc_dir,"H3K4me3_cfChIP_signature.pdf")
+        params:
+            rname="cfChIP2",
+            script=join(workpath,"workflow","scripts","cfChIP_signatures.R"),
+            infolder=join(workpath,cfTool_dir,"Output","H3K4me3","Signatures"),
+        container:
+            config['images']['cfchip']
+        shell: """
+        Rscript -e "source('{params.script}'); mergeSignatures( '{params.infolder}', '{output.txt}' )";
+        Rscript -e "source('{params.script}'); plotSignatures( '{output.txt}', '{output.pdf}' )";
         """
 
 
