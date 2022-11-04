@@ -197,6 +197,8 @@ for d in PeakTools + otherDirs:
                 os.mkdir(join(workpath,d))
 
 
+cfChIP="yes"
+
 # RULE ALL
 if reps == "yes":
     rule ChIPseq:
@@ -205,6 +207,8 @@ if reps == "yes":
             expand(join(workpath,qc_dir,"{Group}.FRiP_barplot.pdf"),Group=groups),
             expand(join(workpath,qc_dir,'{PeakTool}_jaccard.txt'),PeakTool=PeakTools),
             expand(join(workpath,uropa_dir,'{PeakTool}','{name}_{PeakTool}_uropa_{type}_allhits.txt'),PeakTool=PeakTools,name=chips,type=UropaCats),
+            expand(join(workpath,uropa_dir,'{PeakTool}_promoter_overlap_summaryTable.txt'),PeakTool=PeakTools),
+            expand(join(workpath,uropa_dir,'{PeakTool}_promoter_overlap_summary_table.txt'),PeakTool='DiffbindDeseq2'),
             expand(join(workpath, uropa_dir,diffbind_dir,'{name}_{PeakTool}_uropa_{type}_allhits.txt'),PeakTool=['DiffbindEdgeR','DiffbindDeseq2','DiffbindConsensus'],name=contrasts,type=UropaCats),
             expand(join(workpath,diffbind_dir,"{group1}_vs_{group2}-{PeakTool}","{group1}_vs_{group2}-{PeakTool}_Diffbind.html"),zip,group1=zipGroup1,group2=zipGroup2,PeakTool=zipToolC),
         output:
@@ -216,6 +220,7 @@ else:
             # expand(join(workpath,qc_dir,"{Group}.FRiP_barplot.pdf"),Group=groups),
             expand(join(workpath,qc_dir,'{PeakTool}_jaccard.txt'),PeakTool=PeakTools),
             expand(join(workpath,uropa_dir,'{PeakTool}','{name}_{PeakTool}_uropa_{type}_allhits.txt'),PeakTool=PeakTools,name=chips,type=UropaCats),
+            expand(join(workpath,uropa_dir,'{PeakTool}_promoter_overlap_summaryTable.txt'),PeakTool=PeakTools),
             expand(join(workpath,uropa_dir,'{PeakTool}','{name}_{PeakTool}_uropa_{type}_allhits.txt'),PeakTool="MANorm",name=contrasts,type=UropaCats),
             expand(join(workpath,manorm_dir,"{group1}_vs_{group2}-{tool}","{group1}_vs_{group2}-{tool}_all_MAvalues.xls"),zip,group1=zipGroup1,group2=zipGroup2,tool=zipToolC),
         output:
@@ -427,3 +432,39 @@ rule manorm:
         cmd8 = "tail -n +2 {output.xls} | nl -w2 | awk -v OFS='\t' '{{print $2,$3,$4,$9$1,$6}}' > {output.bed}"
         shell(commoncmd1)
         shell( commoncmd2 + commoncmd3 + cmd1 + cmd2 + cmd3 + cmd4 + cmd5 + cmd6 + cmd7 + cmd8 )
+
+if cfChIP == "yes":
+  rule promoterTable1:
+        input:
+            expand(join(workpath,uropa_dir,'{PeakTool}','{name}_{PeakTool}_uropa_protTSS_allhits.txt'),PeakTool=PeakTools,name=chips),
+        output:
+            txt=join(workpath,uropa_dir,'{PeakTool}_promoter_overlap_summaryTable.txt'),
+        params:
+            rname="promoter1",
+            script=join(workpath,"workflow","scripts","promoterAnnotation_by_Gene.R"),
+            infolder= lambda w: join(workpath,uropa_dir, w.PeakTool)
+        container:
+            config['images']['cfchip']
+        shell: """
+        Rscript -e "source('{params.script}'); peakcallVersion('{params.infolder}','{output.txt}')";
+        """
+
+if cfChIP == "yes":
+  rule promoterTable2:
+        input:
+            expand(join(workpath,uropa_dir,diffbind_dir,'{name}_{PeakTool}_uropa_protTSS_allhits.txt'),PeakTool='DiffbindDeseq2',name=contrasts),
+        output:
+            txt=join(workpath,uropa_dir,'{PeakTool}_promoter_overlap_summary_table.txt'),
+        params:
+            rname="promoter2",
+            script1=join(workpath,"workflow","scripts","promoterAnnotation_by_Gene.R"),
+            script2=join(workpath,"workflow","scripts","significantPathways.R"),
+            infolder= workpath,
+            gtf = config['references']['GTFFILE'],
+        container:
+            config['images']['cfchip']
+        shell: """
+        Rscript -e "source('{params.script1}'); diffbindVersion('{params.infolder}','{output.txt}')";
+        Rscript -e "source('{params.script2}'); promoterAnnotationWrapper('{output.txt}','{params.gtf}','KEGG')";
+        Rscript -e "source('{params.script2}'); promoterAnnotationWrapper('{output.txt}','{params.gtf}','Reactome')";
+        """
