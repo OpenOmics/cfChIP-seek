@@ -77,7 +77,8 @@ Each of the following arguments are optional, and do not need to be provided.
 > *type: file*
 >   
 > This tab delimited (TSV) file is used to setup comparisons within different groups of samples. Please see the `--peakcall` option above for more information about how to define groups within a set of samples. This file consists of two columns containing the names of two groups to compare. The names defined in this file must also exist in the peakcall file.  
-> Please note: the ordering of groups is preserved when creating contrasts. This is important because it dicates how to interpret the direction of the fold-change for your comparison. In the example below, the first comparison can be interpreted as *G2 vs. G1*. This would result in the following contrast: `G2-G1`. Within the context of differential binding analysis, a positive fold-change would indicate that the G2 group has higher levels of binding at X region.  
+> 
+> *Please note:* the ordering of groups is preserved when creating contrasts. This is important because it dicates how to interpret the direction of the fold-change for your comparison. In the example below, the first comparison can be interpreted as *G2 vs. G1*. This would result in the following contrast: `G2-G1`. Within the context of differential binding analysis, a positive fold-change would indicate that the G2 group has higher levels of binding at X region.  
 > 
 > **Contents of example contrasts file:**  
 > ```
