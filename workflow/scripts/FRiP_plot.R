@@ -2,7 +2,7 @@
 ## Created by Tovah Markowitz
 ## June 19, 2020
 ## Updated: Jan 19, 2022
-## Updated: Oct 28, 2022
+## Updated: Novemeber 4, 2022
 
 args <- commandArgs(trailingOnly = TRUE)
 folder <- args[1]
@@ -83,7 +83,9 @@ process_json <- function(injson) {
   inputs <- as.data.frame(json$project$peaks$inputs)
   for (i in 1:length(groupsInfo)) {
     tmp <- unique(unlist(inputs[names(inputs) %in% groupsInfo[[i]]]))
-    if (tmp != "" ) {
+    if (length(tmp) > 1) {
+       groupsInfo[[i]] <- c(groupsInfo[[i]],as.character(tmp))
+    } else if (tmp != "" ) {
        groupsInfo[[i]] <- c(groupsInfo[[i]],as.character(tmp))
     }
   }
