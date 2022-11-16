@@ -154,7 +154,7 @@ PeakToolsNG = [ tool for tool in PeakTools if tool != "gem" ]
 PeakExtensions = { 'macsNarrow': '_peaks.narrowPeak', 'macsBroad': '_peaks.broadPeak',
                    'sicer': '_broadpeaks.bed', 'gem': '.GEM_events.narrowPeak' ,
                    'MANorm': '_all_MA.bed', 'DiffbindEdgeR': '_Diffbind_EdgeR.bed',
-                   'DiffbindDeseq2': '_Diffbind_Deseq2.bed', 'DiffbindConsensus': '_Diffbind_consensusPeaks.bed'}
+                   'DiffbindDeseq2': '_Diffbind_Deseq2.bed'}
 
 FileTypesDiffBind = { 'macsNarrow': 'narrowPeak', 'macsBroad': 'narrowPeak',
                     'sicer': 'bed', 'gem': 'narrowPeak' }
@@ -186,6 +186,7 @@ homer_dir = "HOMER_motifs"
 uropa_dir = "UROPA_annotations"
 diffbind_dir = "DiffBind"
 manorm_dir = "MANorm"
+downstream_dir = "Downstream"
 
 otherDirs = [qc_dir, homer_dir, uropa_dir]
 if reps == "yes":
@@ -207,9 +208,9 @@ if reps == "yes":
             expand(join(workpath,qc_dir,"{Group}.FRiP_barplot.pdf"),Group=groups),
             expand(join(workpath,qc_dir,'{PeakTool}_jaccard.txt'),PeakTool=PeakTools),
             expand(join(workpath,uropa_dir,'{PeakTool}','{name}_{PeakTool}_uropa_{type}_allhits.txt'),PeakTool=PeakTools,name=chips,type=UropaCats),
-            expand(join(workpath,uropa_dir,'{PeakTool}_promoter_overlap_summaryTable.txt'),PeakTool=PeakTools),
-            expand(join(workpath,uropa_dir,'{PeakTool}_promoter_overlap_summary_table.txt'),PeakTool='DiffbindDeseq2'),
-            expand(join(workpath, uropa_dir,diffbind_dir,'{name}_{PeakTool}_uropa_{type}_allhits.txt'),PeakTool=['DiffbindEdgeR','DiffbindDeseq2','DiffbindConsensus'],name=contrasts,type=UropaCats),
+            expand(join(workpath,uropa_dir,downstream_dir,'{PeakTool}_promoter_overlap_summaryTable.txt'),PeakTool=PeakTools),
+            expand(join(workpath,uropa_dir,downstream_dir,'{PeakTool}_promoter_overlap_summary_table.txt'),PeakTool='DiffbindDeseq2'),
+            expand(join(workpath,uropa_dir,diffbind_dir,'{name}_{PeakTool}_uropa_{type}_allhits.txt'),PeakTool=['DiffbindEdgeR','DiffbindDeseq2'],name=contrasts,type=UropaCats),
             expand(join(workpath,diffbind_dir,"{group1}_vs_{group2}-{PeakTool}","{group1}_vs_{group2}-{PeakTool}_Diffbind.html"),zip,group1=zipGroup1,group2=zipGroup2,PeakTool=zipToolC),
         output:
             touch(join(workpath, 'dba.done'))
@@ -305,8 +306,8 @@ rule FRiP_plot:
     Rscript {params.script} {workpath}
     """
 
-
-rule UROPA:
+if False:
+  rule UROPA:
     input:
         lambda w: [ join(workpath, w.PeakTool1, w.name, w.name + PeakExtensions[w.PeakTool2]) ]
     output:
@@ -348,6 +349,36 @@ rule UROPA:
     uropa -i {params.json} -p {params.outroot} -t {params.threads} -s
     """
 
+if cfChIP == "yes":
+  rule UROPA:
+    input:
+        lambda w: [ join(workpath, w.PeakTool1, w.name, w.name + PeakExtensions[w.PeakTool2]) ]
+    output:
+        join(workpath, uropa_dir, '{PeakTool1}', '{name}_{PeakTool2}_uropa_{type}_allhits.txt')
+    params:
+        rname="uropa",
+        uropaver = config['tools']['UROPAVER'],
+        fldr = join(workpath, uropa_dir, '{PeakTool1}'),
+        json = join(workpath, uropa_dir, '{PeakTool1}','{name}.{PeakTool2}.{type}.json'),
+        outroot = join(workpath, uropa_dir, '{PeakTool1}','{name}_{PeakTool2}_uropa_{type}'),
+        gtf = config['references']['GTFFILE'],
+        threads = 4,
+    shell: """
+    module load {params.uropaver};
+    # Dynamically creates UROPA config file
+    if [ ! -e {params.fldr} ]; then mkdir {params.fldr}; fi
+    echo '{{"queries":[ ' > {params.json}
+    if [ '{wildcards.type}' == 'protTSS' ]; then
+         echo '      {{ "feature":"gene","distance":3000,"filter.attribute":"gene_type","attribute.value":"protein_coding","feature.anchor":"start" }},' >> {params.json}
+         echo '      {{ "feature":"gene","distance":10000,"filter.attribute":"gene_type","attribute.value":"protein_coding","feature.anchor":"start" }},' >> {params.json}
+         echo '      {{ "feature":"gene","distance":100000,"filter.attribute":"gene_type","attribute.value":"protein_coding","feature.anchor":"start" }}],' >> {params.json}
+    fi
+    echo '"show_attributes":["gene_id", "gene_name","gene_type"],' >> {params.json}
+    echo '"priority":"Yes",' >> {params.json}
+    echo '"gtf":"{params.gtf}",' >> {params.json}
+    echo '"bed": "{input}" }}' >> {params.json}
+    uropa -i {params.json} -p {params.outroot} -t {params.threads} -s
+    """
 
 rule diffbind:
     input:
@@ -356,7 +387,6 @@ rule diffbind:
         html = join(workpath,diffbind_dir,"{group1}_vs_{group2}-{PeakTool}","{group1}_vs_{group2}-{PeakTool}_Diffbind.html"),
         Deseq2 = join(workpath,diffbind_dir,"{group1}_vs_{group2}-{PeakTool}","{group1}_vs_{group2}-{PeakTool}_Diffbind_Deseq2.bed"),
         EdgeR = join(workpath,diffbind_dir,"{group1}_vs_{group2}-{PeakTool}","{group1}_vs_{group2}-{PeakTool}_Diffbind_EdgeR.bed"),
-        consensus = join(workpath,diffbind_dir,"{group1}_vs_{group2}-{PeakTool}","{group1}_vs_{group2}-{PeakTool}_Diffbind_consensusPeaks.bed"),
     params:
         rname="diffbind",
         Rver = config['tools']['RVER'],
@@ -438,7 +468,7 @@ if cfChIP == "yes":
         input:
             expand(join(workpath,uropa_dir,'{PeakTool}','{name}_{PeakTool}_uropa_protTSS_allhits.txt'),PeakTool=PeakTools,name=chips),
         output:
-            txt=join(workpath,uropa_dir,'{PeakTool}_promoter_overlap_summaryTable.txt'),
+            txt=join(workpath,uropa_dir,downstream_dir,'{PeakTool}_promoter_overlap_summaryTable.txt'),
         params:
             rname="promoter1",
             script=join(workpath,"workflow","scripts","promoterAnnotation_by_Gene.R"),
@@ -454,7 +484,7 @@ if cfChIP == "yes":
         input:
             expand(join(workpath,uropa_dir,diffbind_dir,'{name}_{PeakTool}_uropa_protTSS_allhits.txt'),PeakTool='DiffbindDeseq2',name=contrasts),
         output:
-            txt=join(workpath,uropa_dir,'{PeakTool}_promoter_overlap_summary_table.txt'),
+            txt=join(workpath,uropa_dir,downstream_dir,'{PeakTool}_promoter_overlap_summary_table.txt'),
         params:
             rname="promoter2",
             script1=join(workpath,"workflow","scripts","promoterAnnotation_by_Gene.R"),

@@ -15,6 +15,12 @@ params:
     peakcaller: "macs"
 ---
 
+<style type="text/css">
+  body{
+  font-size: 12pt;
+}
+</style>
+
 ```{r, include=FALSE, warning=FALSE, message=FALSE}
 ## grab args
 dateandtime<-format(Sys.time(), "%a %b %d %Y - %X")
@@ -46,13 +52,13 @@ print(samples)
 ```
 
 ## Correlation heatmap: Only peaks
-Pearson correlation of peak positions
+Pearson correlation of peak positions: all samples versus all samples  
 ```{r heatmap1}
-try(plot(samples,main="",margin=14),silent=TRUE)
+try(dba.plotHeatmap(samples,main="",margin=20,cexRow=1,cexCol=1),silent=TRUE)
 ```
 
 ## PCA: Only peaks
-Variance of peak positions
+Variance of peak positions  
 ```{r PCA1, fig.height=5,fig.width=5}
 try(dba.plotPCA(samples,DBA_CONDITION),silent=TRUE)
 ```
@@ -60,20 +66,21 @@ try(dba.plotPCA(samples,DBA_CONDITION),silent=TRUE)
 ## Overlapping peak counts
 Number of overlapping peaks.  
 If the number of samples is greater than 4, a "consensus" peak Venn diagram is created, where
-the consensus peak set are the peaks identified in all samples for that condition. This is different
+the consensus peak set are the peaks identified in at least 2 samples for that condition. This is different
 from the consensus peak set used for differential analyses.
 ```{r Venn, fig_height=4}
 if (nrow(samples$samples) < 5) {
    dba.plotVenn(samples,1:nrow(samples$samples)) 
 } else {
-   try(dba.plotVenn(samples,samples$masks[[3]]),silent=TRUE)
-   try(dba.plotVenn(samples,samples$masks[[4]]),silent=TRUE)
-   dba.plotVenn(consensus,consensus$masks$Consensus)
+   dba.plotVenn(consensus,consensus$masks$Consensus,main="Binding Site Overlaps: 'consensus', comparing between groups")
+   try(dba.plotVenn(samples,samples$masks[[3]],main="Binding Site Overlaps: samples in Group1"),silent=TRUE)
+   try(dba.plotVenn(samples,samples$masks[[4]],main="Binding Site Overlaps: samples in Group2"),silent=TRUE)
 }
 ```
 
 # Consensus peaks and counts
-Consensus peaks are found in at least two samples, independent of condition.
+Consensus peaks are peaks found in at least two samples, independent of condition.
+FRiP is of consensus peaks and will not match FRiP values calculated outside of this tool.
 ```{r peaksORsummits}
 if ( grepl("narrow",samples$samples$Peaks[1]) ) {
    summits <- TRUE
@@ -100,19 +107,19 @@ print(DBdataCounts)
 outfile2 <- paste0(contrasts, "-", peakcaller,"_Diffbind_consensusPeaks.bed")
 consensus2 <- dba.peakset(DBdataCounts,bRetrieve=T)
 consensus2$name <- paste0("Peak",1:length(consensus2))
-rtracklayer::export(consensus2,outfile2)
+#rtracklayer::export(consensus2,outfile2)
 ```
 
 ## Correlation heatmap: Peaks and reads
-Pearson correlation of library-size normalized counts of consensus peaks
+Pearson correlation of library-size normalized counts of consensus peaks: all samples versus all samples
 ```{r heatmap2}
-try(plot(DBdataCounts, main="",margin=14),silent=TRUE)
+try(dba.plotHeatmap(DBdataCounts,main="",margin=20,cexRow=1,cexCol=1),silent=TRUE)
 ```
 
 ## Heatmap: Average signal across each peak
 1000 most variable consensus peaks (library-size normalized counts)
 ```{r heatmap3}
-try(dba.plotHeatmap(DBdataCounts,correlations=FALSE,margin=14),silent=TRUE)
+try(dba.plotHeatmap(DBdataCounts,correlations=FALSE,margin=20,cexRow=1,cexCol=1),silent=TRUE)
 ```
 
 ## PCA: Peaks and reads
@@ -134,7 +141,7 @@ projects, Deseq2 is the optimal tool. Both tools assume that the majority of pea
 not changing between the two conditions. EdgeR also assumes that there are equal numbers
 of peaks on each side of the contrast, so it normalizes the data more than Deseq2. EdgeR
 is especially useful when this assumption is true or when there are large differences in
-library size across samples.
+library size across samples. All concentrations are on log2 scale.
 
 ```{r analyze}
 DBAnalysisDeseq2 <- dba.analyze(DBdatacontrast, method = DBA_DESEQ2)
@@ -147,6 +154,8 @@ DBReportEdgeR <- dba.report(DBAnalysisEdgeR, method = DBA_EDGER)
 ```
 
 ## PCA {.tabset .tabset-fade}
+Variance of differential peaks only
+
 ### DeSeq2 {-}
 ```{r PCA3, fig.height=5,fig.width=5}
 try(dba.plotPCA(DBAnalysisDeseq2, contrast=1, method= DBA_DESEQ2),silent=TRUE)
@@ -157,7 +166,10 @@ try(dba.plotPCA(DBAnalysisDeseq2, contrast=1, method= DBA_DESEQ2),silent=TRUE)
 try(dba.plotPCA(DBAnalysisEdgeR, contrast=1, method = DBA_EDGER),silent=TRUE)
 ```
 
-## MANorm {.tabset .tabset-fade}
+## MA plot {.tabset .tabset-fade}
+"Log concentration" means average concentration across all samples.
+Each dot is a consensus peak.
+
 ### DeSeq2 {-}
 ```{r MA_D}
 try(dba.plotMA(DBAnalysisDeseq2, method = DBA_DESEQ2),silent=TRUE)
@@ -169,6 +181,8 @@ try(dba.plotMA(DBAnalysisEdgeR, method = DBA_EDGER),silent=TRUE)
 ```
 
 ## Volcano plot {.tabset .tabset-fade}
+Each dot is a consensus peak.
+
 ### DeSeq2 {-}
 ```{r Volcano1}
 try(dba.plotVolcano(DBAnalysisDeseq2, method = DBA_DESEQ2),silent=TRUE)
@@ -179,28 +193,17 @@ try(dba.plotVolcano(DBAnalysisDeseq2, method = DBA_DESEQ2),silent=TRUE)
 try(dba.plotVolcano(DBAnalysisEdgeR, method = DBA_EDGER),silent=TRUE)
 ```
 
-## Boxplots {.tabset .tabset-fade}
-### DeSeq2 {-}
-```{r BoxPlot1}
-try(dba.plotBox(DBAnalysisDeseq2, method = DBA_DESEQ2),silent=TRUE)
-```
-
-### EdgeR {-}
-```{r BoxPlot2}
-try(dba.plotBox(DBAnalysisEdgeR, method = DBA_EDGER),silent=TRUE)
-```
-
 ## Heatmap: Differential {.tabset .tabset-fade}
 1000 most significant differential peaks (Deseq2 or EdgeR normalized)
 
 ### DeSeq2 {-}
 ```{r heatmap4D}
-try(dba.plotHeatmap(DBAnalysisDeseq2,method = DBA_DESEQ2,correlations=FALSE,margin=14),silent=TRUE)
+try(dba.plotHeatmap(DBAnalysisDeseq2,contrast=1,method = DBA_DESEQ2,correlations=FALSE,margin=20,cexRow=1,cexCol=1),silent=TRUE)
 ```
 
 ### EdgeR {-}
 ```{r heatmap4E}
-try(dba.plotHeatmap(DBAnalysisEdgeR,method = DBA_EDGER,correlations=FALSE,margin=14),silent=TRUE)
+try(dba.plotHeatmap(DBAnalysisEdgeR,contrast=1,method = DBA_EDGER,correlations=FALSE,margin=20,cexRow=1,cexCol=1),silent=TRUE)
 ```
 
 ## Top 500 differentially bound peaks {.tabset .tabset-fade}
@@ -211,7 +214,15 @@ outfile2 <- paste0(contrasts, "-", peakcaller, "_Diffbind_Deseq2.bed")
 write.table(DBReportDeseq2, outfile, quote=F, sep="\t", row.names=F)
 DBReportDeseq2$name <- paste0("Peak",1:length(DBReportDeseq2))
 try(rtracklayer::export(DBReportDeseq2, outfile2),silent=TRUE)
-DT::datatable(data.frame(DBReportDeseq2)[1:500,], rownames=F)
+D2i <- length(DBReportDeseq2)
+if (D2i == 0) {
+   i=1
+} else if (D2i > 500) {
+   i=500
+} else {
+   i=D2i
+}
+DT::datatable(data.frame(DBReportDeseq2)[1:i,], rownames=F)
 
 report2 <- dba.report(DBAnalysisDeseq2,method = DBA_DESEQ2,th=100,bNormalized=T,bFlip=FALSE,precision=0)
 outfile3 <- paste0(contrasts, "-", peakcaller, "_Diffbind_Deseq2_fullList.txt")
@@ -225,7 +236,15 @@ outfile2 <- paste0(contrasts, "-", peakcaller,"_Diffbind_EdgeR.bed")
 write.table(DBReportEdgeR, outfile, quote=F, sep="\t", row.names=F)
 DBReportEdgeR$name <- paste0("Peak",1:length(DBReportEdgeR))
 try(rtracklayer::export(DBReportEdgeR, outfile2),silent=TRUE)
-DT::datatable(data.frame(DBReportEdgeR)[1:500,], rownames=F)
+Ei <- length(DBReportEdgeR)
+if (Ei == 0) {
+   i=1
+} else if (Ei > 500) {
+   i=500
+} else {
+   i=Ei
+}
+DT::datatable(data.frame(DBReportEdgeR)[1:i,], rownames=F)
 
 report2 <- dba.report(DBAnalysisEdgeR,method = DBA_EDGER,th=100,bNormalized=T,bFlip=FALSE,precision=0)
 outfile3 <- paste0(contrasts, "-", peakcaller, "_Diffbind_EdgeR_fullList.txt")
