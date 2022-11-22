@@ -49,7 +49,7 @@ def index(file, delim='\t', required = ['chip', 'input', 'group'], optional = ['
     # Check to see if the file is empty
     fh = open(file, 'r')
     try:
-        header = [clean(col.lower()) for col in next(fh).strip().split(delim)]
+        header = [clean(col.lower().strip()) for col in next(fh).strip().split(delim)]
     except StopIteration:
         err('{}{}Error: peakcall file, {}, is empty!{}'.format(c.bg_red, c.white, file, c.end))
         fatal('{}{}Please add ChIP-Input pairs and group information to the file and try again.{}'.format(c.bg_red, c.white, c.end))
