@@ -13,6 +13,20 @@ from utils import (
 )
 
 
+def clean(s, remove=['"', "'"]):
+    """Cleans a string to remove any defined leading or trailing characters.
+    @param s <str>:
+        String to clean.
+    @param remove list[<str>]:
+        List of characters to remove from beginning or end of string 's'.
+    @return s <str>:
+        Cleaned string
+    """
+    for c in remove:
+        s = s.strip(c)
+    return s
+
+
 def index(file, delim='\t', required = ['chip', 'input', 'group'], optional = ['block']):
     """Return the index of expected columns in provided file. If an optional 
     column is not provided, then None is returned its column index. The peakcall 
@@ -35,7 +49,7 @@ def index(file, delim='\t', required = ['chip', 'input', 'group'], optional = ['
     # Check to see if the file is empty
     fh = open(file, 'r')
     try:
-        header = [col.lower() for col in next(fh).strip().split(delim)]
+        header = [clean(col.lower()) for col in next(fh).strip().split(delim)]
     except StopIteration:
         err('{}{}Error: peakcall file, {}, is empty!{}'.format(c.bg_red, c.white, file, c.end))
         fatal('{}{}Please add ChIP-Input pairs and group information to the file and try again.{}'.format(c.bg_red, c.white, c.end))
@@ -152,7 +166,7 @@ def peakcalls(file, delim='\t'):
         'G5': ['cfChIP_004', 'cfChIP_005', 'cfChIP_006', 'cfChIP_007', 'cfChIP_008'],
     }
     >> blocks
-        {
+    {
         'cfChIP_002': 'B1',
         'cfChIP_003': 'B1',
         'cfChIP_000': 'B2',
@@ -200,14 +214,14 @@ def peakcalls(file, delim='\t'):
             linelist = [l.strip() for l in line.split(delim)]
             # Parse Input information
             try:
-                input_sample = linelist[i_index]
+                input_sample = clean(linelist[i_index])
             except IndexError:
                 # No matching input sample,
                 # perform ChIP-only peak calling
                 input_sample = ""
             # Parse Chip information
             try:
-                chip_sample = linelist[c_index]
+                chip_sample = clean(linelist[c_index])
                 if not chip_sample: continue  # skipover empty string
             except IndexError:
                 # No ChIP sample, skip over line
@@ -221,7 +235,7 @@ def peakcalls(file, delim='\t'):
             # Check for multiple groups,
             # split on comma or semicolon
             multiple_groups = re.split(';|,',group)
-            multiple_groups = [g.strip() for g in multiple_groups]
+            multiple_groups = [clean(g.strip()) for g in multiple_groups]
             for g in multiple_groups:
                 if g not in groups:
                     groups[g] = []
@@ -231,7 +245,7 @@ def peakcalls(file, delim='\t'):
             block_info = None
             if b_index != None:
                 try:
-                    block_info = linelist[b_index]
+                    block_info = clean(linelist[b_index])
                     if not block_info: 
                         block_info = None  # check empty string
                 except IndexError:
@@ -276,7 +290,7 @@ def contrasts(file, groups, delim='\t'):
     with open(file) as fh:
         for line in fh:
             line_number += 1
-            linelist = [l.strip() for l in line.split(delim)]
+            linelist = [clean(l.strip()) for l in line.split(delim)]
             try:
                 g1 = linelist[0]
                 g2 = linelist[1]
