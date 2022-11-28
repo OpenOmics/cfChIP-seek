@@ -23,6 +23,7 @@ today = str(datetime.datetime.today()).split()[0].replace('-', '')
 configfile: "config.json"
 samples  = config['samples']
 workpath = config['project']['workpath']
+tmpdir = config['options']['tmp_dir']
 
 # Analysis options
 # Run differential binding pipeline
