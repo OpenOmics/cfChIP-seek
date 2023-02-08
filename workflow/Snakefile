@@ -283,7 +283,7 @@ rule BWA_PE:
         pythonver="python/3.5"
     output:
         outbam1=join(workpath,bam_dir,"{name}.sorted.bam"), 
-        outbam2=join(join(workpath,bam_dir,"{name}.Q5.bam")),
+        outbam2=temp(join(workpath,bam_dir,"{name}.Q5.bam")),
         flagstat1=join(workpath,bam_dir,"{name}.sorted.bam.flagstat"),
         idxstat1=join(workpath,bam_dir,"{name}.sorted.bam.idxstat"),
         flagstat2=join(workpath,bam_dir,"{name}.Q5.bam.flagstat"),
