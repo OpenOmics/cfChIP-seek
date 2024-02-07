@@ -1,3 +1,6 @@
+> [!WARNING]  
+> This pipeline has been archived, and the project has moved to another location. Do not use this pipeline as it will not receive any future updates! **Please use our new cell-free ChIP-sequencing pipeline,  [`chrom-seek`](https://github.com/OpenOmics/chrom-seek).**
+
 <div align="center">
    
   <h1>cfChIP-seek 🔬</h1>
